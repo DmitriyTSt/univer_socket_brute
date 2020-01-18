@@ -1,0 +1,56 @@
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+int main(int argc, char * argv[]) {
+  int sd, nsd;
+  struct sockaddr_in srv_addr, cl_addr;
+  socklen_t cl_addr_size;
+  int buf;
+  int bytes_read;
+
+  
+  sd = socket(AF_INET, SOCK_STREAM, 0);
+  if (sd == -1) {
+    fprintf(stderr, "Socket error\n");
+    return EXIT_FAILURE;
+  }
+
+  srv_addr.sin_family = AF_INET;
+  srv_addr.sin_port = 1000;
+  srv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+  if (bind(sd, (struct sockaddr *) &srv_addr, sizeof(srv_addr)) == -1) {
+    fprintf(stderr, "Bind error\n");
+    return EXIT_FAILURE;
+  }
+
+  if (listen(sd, 1) == -1) {
+    fprintf(stderr, "Listen error\n");
+    return EXIT_FAILURE;
+  }
+
+  cl_addr_size = sizeof(struct sockaddr_in);
+  nsd = accept(sd, (struct sockaddr *) &cl_addr, &cl_addr_size);
+  if (nsd == -1) {
+    fprintf(stderr, "Accept error\n");
+    return EXIT_FAILURE;
+  }
+
+  buf = 0;
+  for (;;) {
+    bytes_read = recv(nsd, buf, sizeof(buf), 0);
+    if (butes_read == 0) {
+      break;
+    }
+    buf++;
+    printf("now: %d", buf);
+    sleep(1);
+    send(nsd, buf, bytes_read, 0);
+  }
+
+  close(nsd);
+}
